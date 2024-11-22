@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Examinations</title>
+</head>
+<body>
+    <h1>All Examinations</h1>
+    
+    {% if examinations %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Exam ID</th>
+                    <th>Question Paper ID</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Duration (Minutes)</th>
+                    <th>Examination Conductor User ID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for examination in examinations %}
+                    <tr>
+                        <td>{{ examination.exam_id }}</td>
+                        <td>{{ examination.question_paper_id }}</td>
+                        <td>{{ examination.start_time }}</td>
+                        <td>{{ examination.end_time }}</td>
+                        <td>{{ examination.duration }}</td>
+                        <td>{{ examination.examination_conductor_user_id }}</td>
+                        <td>
+                            <a href="{{ url_for('examination_routes.admin_portal') }}">View Details</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No examinations found.</p>
+    {% endif %}
+</body>
+</html>

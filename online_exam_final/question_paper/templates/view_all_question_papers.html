@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Question Papers</title>
+</head>
+<body>
+    <h1>All Question Papers</h1>
+    
+    {% if question_papers %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Question Paper ID</th>
+                    <th>Title</th>
+                    <th>Meta Data</th>
+                    <th>Min Required Questions</th>
+                    <th>Max Questions</th>
+                    <th>Max Score</th>
+                    <th>Setter ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for paper in question_papers %}
+                    <tr>
+                        <td>{{ paper.question_paper_id }}</td>
+                        <td>{{ paper.question_paper_title }}</td>
+                        <td>{{ paper.question_paper_meta_data }}</td>
+                        <td>{{ paper.min_req_number_of_questions_to_be_attempted }}</td>
+                        <td>{{ paper.max_number_of_questions_that_can_be_attempted }}</td>
+                        <td>{{ paper.max_score }}</td>
+                        <td>{{ paper.question_paper_setter_id }}</td>
+                        <td>
+                            <a href="{{ url_for('question_routes.admin_portal') }}">View Details</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No question papers found.</p>
+    {% endif %}
+</body>
+</html>
