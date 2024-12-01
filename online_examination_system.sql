@@ -9,12 +9,12 @@ CREATE TABLE USER (
 );
 
 CREATE TABLE Student (
-    student_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     gender CHAR(1) CHECK (gender IN ('M', 'F')),
     date_of_birth DATE NOT NULL,
     address VARCHAR(250),
-    FOREIGN KEY (student_id) REFERENCES USER(user_id)
+    FOREIGN KEY (student_id) REFERENCES USER(user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE QuestionPaper (
@@ -25,23 +25,23 @@ CREATE TABLE QuestionPaper (
     max_number_of_questions_that_can_be_attempted INT NOT NULL,
     max_score INT NOT NULL,
     question_paper_setter_id INT,
-    FOREIGN KEY (question_paper_setter_id) REFERENCES USER(user_id)
+    FOREIGN KEY (question_paper_setter_id) REFERENCES USER(user_id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE TABLE Question (
     question_id INT AUTO_INCREMENT PRIMARY KEY,
     question_paper_id INT NOT NULL,
     question_text TEXT NOT NULL,
-    FOREIGN KEY (question_paper_id) REFERENCES QuestionPaper(question_paper_id)
+    FOREIGN KEY (question_paper_id) REFERENCES QuestionPaper(question_paper_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Options (
     option_id INT AUTO_INCREMENT PRIMARY KEY,
-    question_id INT,
+    question_id INT NOT NULL,
     option_text VARCHAR(255) NOT NULL,
     option_label CHAR(1) CHECK (option_label IN ('A', 'B', 'C', 'D')),
-    FOREIGN KEY (question_id) REFERENCES Question(question_id) ON DELETE CASCADE,
-    UNIQUE (question_id, option_label)  
+    FOREIGN KEY (question_id) REFERENCES Question(question_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE (question_id, option_label)
 );
 
 CREATE TABLE Examination (
@@ -51,10 +51,9 @@ CREATE TABLE Examination (
     end_time DATETIME NOT NULL,
     duration INT NOT NULL,  
     examination_conductor_user_id INT,
-    FOREIGN KEY (question_paper_id) REFERENCES QuestionPaper(question_paper_id),
-    FOREIGN KEY (examination_conductor_user_id) REFERENCES USER(user_id)
+    FOREIGN KEY (question_paper_id) REFERENCES QuestionPaper(question_paper_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (examination_conductor_user_id) REFERENCES USER(user_id) ON DELETE SET NULL ON UPDATE CASCADE
 );
-
 
 CREATE TABLE UserResponses (
     response_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -62,15 +61,15 @@ CREATE TABLE UserResponses (
     student_user_id INT NOT NULL,
     question_id INT NOT NULL,
     selected_option_label CHAR(1) CHECK (selected_option_label IN ('A', 'B', 'C', 'D')),
-    FOREIGN KEY (exam_id) REFERENCES Examination(exam_id),
-    FOREIGN KEY (student_user_id) REFERENCES USER(user_id),
-    FOREIGN KEY (question_id) REFERENCES Question(question_id)
+    FOREIGN KEY (exam_id) REFERENCES Examination(exam_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (student_user_id) REFERENCES USER(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES Question(question_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE CorrectAnswers (
     question_id INT PRIMARY KEY,
     correct_option_label CHAR(1) CHECK (correct_option_label IN ('A', 'B', 'C', 'D')),
-    FOREIGN KEY (question_id) REFERENCES Question(question_id)
+    FOREIGN KEY (question_id) REFERENCES Question(question_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Evaluation (
@@ -79,8 +78,8 @@ CREATE TABLE Evaluation (
     student_user_id INT NOT NULL,
     score INT,
     score_with_respect_to_max_score INT,
-    FOREIGN KEY (exam_id) REFERENCES Examination(exam_id),
-    FOREIGN KEY (student_user_id) REFERENCES USER(user_id)
+    FOREIGN KEY (exam_id) REFERENCES Examination(exam_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (student_user_id) REFERENCES USER(user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE LiveSession (
@@ -89,9 +88,10 @@ CREATE TABLE LiveSession (
     conductor_user_id INT NOT NULL,
     session_code VARCHAR(10) UNIQUE NOT NULL, 
     session_status ENUM('active', 'completed', 'cancelled') DEFAULT 'active',
-    FOREIGN KEY (exam_id) REFERENCES Examination(exam_id),
-    FOREIGN KEY (conductor_user_id) REFERENCES User(user_id)
+    FOREIGN KEY (exam_id) REFERENCES Examination(exam_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (conductor_user_id) REFERENCES USER(user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
 
 
 INSERT INTO USER (user_type, official_email_id)
