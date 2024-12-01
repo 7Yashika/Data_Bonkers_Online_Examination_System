@@ -1,6 +1,6 @@
 CREATE DATABASE ONLINE_EXAM_SYSTEM;
 USE ONLINE_EXAM_SYSTEM;
-
+drop database online_exam_system;
 
 CREATE TABLE USER (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -321,84 +321,47 @@ INSERT INTO LiveSession (exam_id, conductor_user_id, session_code, session_statu
 (3, 3, 'XYZ780', 'cancelled'),
 (4, 3, 'XYZ799', 'completed');
 
-INSERT INTO Evaluation (exam_id, student_user_id, score, score_with_respect_to_max_score)
+ INSERT INTO UserResponses (exam_id, student_user_id, question_id, selected_option_label)
 VALUES
-(1, 1, 35, 40),
-(1, 2, 30, 40),
-(1, 3, 25, 40),
-(1, 4, 28, 40),
-(2, 1, 38, 40),
-(2, 2, 36, 40),
-(2, 3, 34, 40),
-(2, 4, 32, 40),
-(3, 1, 27, 40),
-(3, 2, 29, 40),
-(3, 3, 31, 40),
-(3, 4, 26, 40),
-(4, 1, 40, 40),
-(4, 2, 38, 40),
-(4, 3, 37, 40),
-(4, 4, 39, 40);
+(1, 1, 1, 'a'),  
+(1, 1, 2, 'b'),  
+(1, 1, 3, 'c'),
+(1, 1, 4, 'a'),  
+(1, 1, 5, 'b'),  
+(1, 1, 6, 'c'),
+(2, 2, 1, 'a'),  
+(2, 2, 2, 'b'),  
+(2, 2, 3, 'c'),
+(2, 2, 4, 'c'),
+(2, 2, 5, 'c'),
+(2, 2, 6, 'c');
 
-
-INSERT INTO UserResponses (exam_id, question_id, student_user_id, selected_option_label)
-VALUES
-(1, 1, 1, 'A'),
-(1, 2, 1, 'B'),
-(1, 3, 1, 'C'),
-(1, 1, 2, 'B'),
-(1, 2, 2, 'A'),
-(1, 3, 2, 'C'),
-(1, 1, 3, 'C'),
-(1, 2, 3, 'B'),
-(1, 3, 3, 'A'),
-(1, 1, 4, 'A'),
-(1, 2, 4, 'C'),
-(1, 3, 4, 'B');
-
+INSERT INTO Evaluation (student_user_id, exam_id, score_with_respect_to_max_score) 
+VALUES 
+    (1, 1,35), 
+    (2, 2, 40);
 
 SELECT * FROM USER;
+SELECT * FROM STUDENT;
+SELECT * FROM QUESTIONPAPER;
+SELECT * FROM QUESTION;
+SELECT * FROM OPTIONS;
+SELECT * FROM EXAMINATION;
+SELECT * FROM USERRESPONSES;
+SELECT * FROM CORRECTANSWERS;
+SELECT * FROM EVALUATION;
+SELECT * FROM LIVESESSION;
 
-SELECT * FROM student;
 
-SELECT * FROM questionpaper;
-
-SELECT * FROM question;
-
-SELECT * FROM options;
-
-SELECT * FROM examination;
-
-SELECT * FROM userresponses;
-
-SELECT * FROM correctanswers;
-
-SELECT * FROM evaluation;
-
-SELECT * FROM LiveSession;
-
-SELECT * -- Retrieve all live sessions that are currently active
-FROM LiveSession 
-WHERE session_status = 'active';
-
-SELECT * -- Retrieve all exams conducted by a specific user (exam conductor ID = 3):
-fROM Examination 
-WHERE examination_conductor_user_id = 3;
-
--- Get the total number of students who have taken a specific exam (exam_id = 1):
-SELECT COUNT(DISTINCT student_user_id) AS total_students 
-FROM UserResponses 
-WHERE exam_id = 1;
-
-SELECT -- list of all students and their details
+ SELECT -- list of all students and their details
     s.student_id, s.name, s.gender, s.date_of_birth, s.address, u.official_email_id
 FROM 
     Student s
 JOIN 
     USER u ON s.student_id = u.user_id;
-
-
-   SELECT -- list of all exam and details
+    
+    
+    SELECT -- list of all exam and details
     e.exam_id, e.start_time, e.end_time, e.duration, 
     qp.question_paper_title, u.official_email_id AS conductor_email
 FROM 
@@ -407,17 +370,18 @@ JOIN
     QuestionPaper qp ON e.question_paper_id = qp.question_paper_id
 JOIN 
     USER u ON e.examination_conductor_user_id = u.user_id;
-
-
+    
+    
+    
 SELECT -- list of all question papers
     question_paper_id, question_paper_title, question_paper_meta_data, 
     min_req_number_of_questions_to_be_attempted, 
     max_number_of_questions_that_can_be_attempted, max_score
 FROM 
     QuestionPaper;
-
-
- SELECT -- Retrieve all questions and corresponding options for a particular question paper
+    
+    
+    SELECT -- Retrieve all questions and corresponding options for a particular question paper
     q.question_text, o.option_label, o.option_text
 FROM 
     Question q
@@ -435,9 +399,25 @@ JOIN
     CorrectAnswers ca ON q.question_id = ca.question_id
 WHERE 
     q.question_paper_id = 4; 
+    
+    
+    SELECT s.student_id, s.name, e.exam_id, q.question_paper_title, e.start_time, e.end_time-- Retrieve All Students Who Have Taken an Examination
+FROM Student s
+JOIN User u ON s.student_id = u.user_id
+JOIN UserResponses ur ON u.user_id = ur.student_user_id
+JOIN Examination e ON ur.exam_id = e.exam_id
+JOIN QuestionPaper q ON e.question_paper_id = q.question_paper_id
+GROUP BY s.student_id, e.exam_id;
 
 
- SELECT -- user response 
+SELECT s.student_id, s.name -- list of student who havent given exam
+FROM Student s
+LEFT JOIN UserResponses ur ON s.student_id = ur.student_user_id
+WHERE ur.student_user_id IS NULL;
+
+
+    
+  SELECT -- user response 
     ur.student_user_id, 
     s.name, 
     ur.question_id, 
@@ -449,24 +429,31 @@ JOIN
 WHERE 
     s.student_id = 2;
 
- -- Get the question paper details and their setter for each exam
-SELECT Examination.exam_id, QuestionPaper.question_paper_title, QuestionPaper.question_paper_setter_id, USER.official_email_id 
-FROM Examination 
-JOIN QuestionPaper ON Examination.question_paper_id = QuestionPaper.question_paper_id
-JOIN USER ON QuestionPaper.question_paper_setter_id = USER.user_id;
+ 
 
--- Get the highest score in a specific exam (exam_id = 4):
-SELECT MAX(score) AS highest_score 
-FROM Evaluation 
-WHERE exam_id = 4;
+SELECT 
+    ur.student_user_id, 
+    s.name, 
+    COUNT(*) * (MAX(qp.max_score) / NULLIF(COUNT(DISTINCT ca.question_id), 0)) AS student_score
+FROM 
+    UserResponses ur
+JOIN 
+    CorrectAnswers ca ON ur.question_id = ca.question_id
+JOIN 
+    Question q ON ur.question_id = q.question_id
+JOIN 
+    QuestionPaper qp ON q.question_paper_id = qp.question_paper_id
+JOIN 
+    Student s ON ur.student_user_id = s.student_id
+WHERE 
+    ur.selected_option_label = ca.correct_option_label
+    AND ur.student_user_id = 2
+GROUP BY 
+    ur.student_user_id, s.name;
 
--- Get the average score of all students in a specific exam (exam_id = 2):
-SELECT AVG(score) AS average_score 
-FROM Evaluation 
-WHERE exam_id = 2;
 
 
-SELECT -- list of all live session exam
+    SELECT -- list of all live session exam
     ls.session_id, ls.session_code, ls.session_status, e.exam_id, e.start_time, u.official_email_id AS conductor_email
 FROM 
     LiveSession ls
@@ -493,13 +480,13 @@ JOIN
 JOIN 
     QuestionPaper qp ON ex.question_paper_id = qp.question_paper_id
 WHERE 
-    qp.question_paper_title = 'DSD';  
-    
-    
-SELECT  -- total marks obtained by all students in a specific exam and compares it with the maximum possible score for that exam.
-SUM(e.score_with_respect_to_max_score) AS total_marks_obtained,
-COUNT(e.student_user_id) AS total_students,
-qp.max_score * COUNT(e.student_user_id) AS total_possible_score
+    qp.question_paper_title = 'DSD';  -- Replace with the actual title
+
+
+   SELECT  -- total marks obtained by all students in a specific exam and compares it with the maximum possible score for that exam.
+    SUM(e.score_with_respect_to_max_score) AS total_marks_obtained,
+    COUNT(e.student_user_id) AS total_students,
+    qp.max_score * COUNT(e.student_user_id) AS total_possible_score
 FROM 
     Evaluation e
 JOIN 
@@ -508,12 +495,11 @@ JOIN
     QuestionPaper qp ON ex.question_paper_id = qp.question_paper_id
 WHERE 
     ex.exam_id = 1;  
-
-
-  SELECT 
-    e.student_user_id, 
-    s.name, 
-    e.score_with_respect_to_max_score
+    
+   
+   
+    SELECT -- retrieves the student who scored the highest in a particular exam.
+    e.student_user_id, s.name, e.score_with_respect_to_max_score
 FROM 
     Evaluation e
 JOIN 
@@ -523,6 +509,84 @@ WHERE
     AND e.score_with_respect_to_max_score = (
         SELECT MAX(score_with_respect_to_max_score)
         FROM Evaluation
-        WHERE exam_id = 1
+        WHERE exam_id = 1 
     );
+    
+    
+    SELECT e.exam_id, COUNT(DISTINCT ur.student_user_id) AS number_of_students-- Get the Number of Students Who Have Taken a Specific Exam
+FROM Examination e
+JOIN UserResponses ur ON e.exam_id = ur.exam_id
+WHERE e.exam_id = 1  
+GROUP BY e.exam_id;
 
+SET SQL_SAFE_UPDATES = 0;
+    DELETE FROM Evaluation;
+    
+    INSERT INTO Evaluation (student_user_id, exam_id)
+VALUES
+(1, 1), 
+(2, 2),
+(3,3),
+(4,4); 
+
+INSERT INTO Evaluation (exam_id, student_user_id, score, score_with_respect_to_max_score)
+SELECT
+    ur.exam_id,
+    ur.student_user_id,
+    COUNT(CASE WHEN ur.selected_option_label = ca.correct_option_label THEN 1 END) AS score,
+    COUNT(CASE WHEN ur.selected_option_label = ca.correct_option_label THEN 1 END) * 100 / COUNT(ca.correct_option_label) AS score_with_respect_to_max_score
+FROM
+    Userresponses ur
+JOIN
+    Correctanswers ca
+ON
+    ur.question_id = ca.question_id
+GROUP BY
+    ur.exam_id, ur.student_user_id;
+    
+    
+    
+    SELECT ur.student_user_id, ur.exam_id, ur.question_id, ur.selected_option_label, ca.correct_option_label
+FROM UserResponses ur
+LEFT JOIN CorrectAnswers ca ON ur.question_id = ca.question_id
+WHERE ur.exam_id = 1; -- Replace with the exam_id you want to verify
+
+
+
+SELECT -- student who scored highest in each sem
+    ex.exam_id, 
+    qp.question_paper_title, 
+    e.student_user_id, 
+    s.name AS student_name, 
+    MAX(e.score_with_respect_to_max_score) AS highest_score
+FROM Evaluation e
+JOIN Student s ON e.student_user_id = s.student_id
+JOIN Examination ex ON e.exam_id = ex.exam_id
+JOIN QuestionPaper qp ON ex.question_paper_id = qp.question_paper_id
+GROUP BY ex.exam_id, qp.question_paper_title, e.student_user_id, s.name;
+
+SELECT -- student with less than 50% marks
+    e.student_user_id, 
+    s.name, 
+    e.exam_id, 
+    e.score_with_respect_to_max_score
+FROM Evaluation e
+JOIN Student s ON e.student_user_id = s.student_id
+WHERE e.score_with_respect_to_max_score < 50;
+
+SELECT -- live session by status
+    ls.session_status, 
+    COUNT(*) AS total_sessions
+FROM LiveSession ls
+GROUP BY ls.session_status;
+
+SELECT -- total score a student in all exam
+    e.student_user_id, 
+    s.name, 
+    SUM(e.score_with_respect_to_max_score) AS total_score
+FROM Evaluation e
+JOIN Student s ON e.student_user_id = s.student_id
+WHERE e.student_user_id = 1 
+GROUP BY e.student_user_id, s.name;
+
+SELECT * FROM Evaluation;
